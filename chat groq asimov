@@ -1,0 +1,91 @@
+import os
+from langchain_groq import ChatGroq
+from langchain.prompts import ChatPromptTemplate
+from langchain_community.document_loaders import YoutubeLoader
+from langchain_community.document_loaders import WebBaseLoader
+from langchain_community.document_loaders import PyPDFLoader
+
+##################################################################################
+
+# Key da Api da Groq
+api_key = "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"
+os.environ["GROQ_API_KEY"] = api_key
+chat = ChatGroq(model = 'llama-3.1-70b-versatile')
+
+def resposta_bot(mensagens):
+    mensagem_modelo = [('system', "Voçê é um assistente amigável chamado Crigoss ")]
+    mensagem_modelo += mensagens
+    template = ChatPromptTemplate.from_messages(mensagem_modelo)
+    chain = template | chat
+    return chain.invoke({}).content
+
+###################################################################################
+
+# Funções criadas para receber os document loaders
+
+def carrega_site():
+    url_site = input("Digite a Url do site ")
+    loader = WebBaseLoader(url_site)
+    lista_documentos = loader.load() # faz o scraping do site (extrai informações do site)
+    documento = ''
+    for doc in lista_documentos:
+        documento = documento + doc.page_content
+    return documento
+
+def carrega_pdf():
+    inserir_pdf = input("insira o caminho do seu pdf")
+    loader = PyPDFLoader(inserir_pdf)
+    lista_documentos = loader.load()
+    documento = ''
+    for doc in lista_documentos:
+        documento = documento + doc.page_content
+    print(documento)
+    return documento
+
+def carrega_youtube():
+    url_youtube = input("Digite a Url do vídeo: ")
+    loader = YoutubeLoader.from_youtube_url(url_youtube, language=["pt"])
+    lista_documentos = loader.load()
+    documento = ''
+    for doc in lista_documentos:
+        documento = documento + doc.page_content
+    print(documento)
+    return documento
+
+
+
+####################################################################################
+
+print("Bem vindo ao Crigoss ")
+
+texto_selecao = '''Digite 1 se você quiser conversar com o site
+Digite 2 se você quiser conversar com o PDF
+Digite 3 se você quiser conversar com um video do youtube
+'''
+
+while True:
+    selecao = input(texto_selecao)
+    if selecao == "1":
+        documento = carrega_site()
+        break
+    if selecao == "2":
+        documento = carrega_pdf()
+        break
+    if selecao == "3":
+        documento = carrega_youtube()
+        break
+    print("digite um valor entre 1 e 3")
+
+mensagens = [] #lista criada para armazenar a pergunta do usuario(input)
+while True:
+    pergunta = input('Usuário: ')
+    if pergunta.lower() == "x":
+        break
+    
+    mensagens.append(("user", pergunta))
+    resposta = resposta_bot(mensagens)
+    mensagens.append(("assistant", resposta))
+    print( f'Bot: {resposta}')
+
+print("muito obrigado por usar o assistente")
+print(mensagens)
