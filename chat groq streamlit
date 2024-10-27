@@ -1,0 +1,73 @@
+import streamlit as st
+from langchain_groq import ChatGroq
+from langchain.prompts import ChatPromptTemplate
+from langchain_community.document_loaders import YoutubeLoader, WebBaseLoader, PyPDFLoader
+
+# Configurações da API da Groq
+import os
+os.environ["GROQ_API_KEY"] = "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"
+chat = ChatGroq(model='llama-3.1-70b-versatile')
+
+def resposta_bot(mensagens):
+    mensagem_modelo = [('system', "Você é um assistente amigável chamado Crigos")]
+    mensagem_modelo += mensagens
+    template = ChatPromptTemplate.from_messages(mensagem_modelo)
+    chain = template | chat
+    return chain.invoke({}).content
+
+# Funções para carregar documentos
+def carrega_documentos(loader):
+    lista_documentos = loader.load()
+    documento = ''.join([doc.page_content for doc in lista_documentos])
+    return documento
+
+def carrega_site(url):
+    loader = WebBaseLoader(url)
+    return carrega_documentos(loader)
+
+def carrega_pdf(caminho_pdf):
+    loader = PyPDFLoader(caminho_pdf)
+    return carrega_documentos(loader)
+
+def carrega_youtube(url):
+    loader = YoutubeLoader.from_youtube_url(url, language=["pt"])
+    return carrega_documentos(loader)
+
+# Interface do Streamlit
+st.title("Crigos - Seu Assistente Amigável")
+
+opcao = st.selectbox('Selecione a fonte de dados:', ('Site', 'PDF', 'YouTube'))
+
+url = None
+caminho_pdf = None
+
+if opcao == 'Site':
+    url = st.text_input('Digite a URL do site:')
+elif opcao == 'PDF':
+    caminho_pdf = st.text_input('Insira o caminho do seu PDF:')
+elif opcao == 'YouTube':
+    url = st.text_input('Digite a URL do vídeo:')
+
+if st.button('Carregar'):
+    if opcao == 'Site':
+        documento = carrega_site(url)
+    elif opcao == 'PDF':
+        documento = carrega_pdf(caminho_pdf)
+    elif opcao == 'YouTube':
+        documento = carrega_youtube(url)
+    st.write("Documentos carregados com sucesso!")
+    st.write(documento)  # Printar na tela o conteúdo carregado
+
+
+mensagens = ''
+
+pergunta = st.text_input('Você:', key='pergunta')
+if st.button('Enviar'):
+    mensagens.append(("user", pergunta))
+    resposta = resposta_bot(mensagens)
+    mensagens.append(("assistant", resposta))
+    st.write(f'Crigos: {resposta}')
+
+if st.button('Finalizar'):
+    st.write("Muito obrigado por usar o assistente!")
+    st.write(mensagens)
