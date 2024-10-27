@@ -1,0 +1,52 @@
+import streamlit as st
+from langchain_groq import ChatGroq
+from langchain.prompts import ChatPromptTemplate
+from langchain_community.document_loaders import YoutubeLoader
+
+# Configurações da API da Groq
+import os
+os.environ["GROQ_API_KEY"] = "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"
+chat = ChatGroq(model='llama-3.1-70b-versatile')
+
+def resposta_bot(mensagens):
+    mensagem_modelo = [('system', "Você é um assistente amigável chamado Erik")]
+    mensagem_modelo += mensagens
+    template = ChatPromptTemplate.from_messages(mensagem_modelo)
+    chain = template | chat
+    return chain.invoke({}).content
+
+# Funções para carregar documento
+def carrega_documentos(loader):
+    lista_documentos = loader.load()
+    documento = ''.join([doc.page_content for doc in lista_documentos])
+    return documento
+
+def carrega_youtube(url):
+    loader = YoutubeLoader.from_youtube_url(url, language=["pt"])
+    return carrega_documentos(loader)
+
+# Interface do Streamlit
+st.title("Erik - Seu Assistente Amigável")
+
+url = None
+
+url = st.text_input('Digite a URL do vídeo:')
+
+if st.button('Carregar'):
+    documento = carrega_youtube(url)
+    st.write("Documentos carregados com sucesso!")
+    st.write(documento)  # Printar na tela o conteúdo carregado
+
+mensagens = []
+
+pergunta = st.text_area('Você:', key='pergunta', on_change=lambda: st.session_state.update({"submit": True}), placeholder="Digite sua pergunta e pressione Enter")
+if st.session_state.get("submit"):
+    mensagens.append(("user", pergunta))
+    resposta = resposta_bot(mensagens)
+    mensagens.append(("assistant", resposta))
+    st.write(f'Erik: {resposta}')
+    st.session_state["submit"] = False
+
+if st.button('Finalizar'):
+    st.write("Muito obrigado por usar o assistente!")
+    st.write(mensagens)
