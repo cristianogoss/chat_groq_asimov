@@ -5,7 +5,7 @@ from langchain_community.document_loaders import YoutubeLoader
 
 # Configurações da API da Groq
 import os
-os.environ["GROQ_API_KEY"] = "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"
+os.environ["GROQ_API_KEY"] = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 chat = ChatGroq(model='llama-3.1-70b-versatile')
 
 def resposta_bot(mensagens):
