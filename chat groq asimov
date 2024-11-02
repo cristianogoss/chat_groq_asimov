@@ -8,7 +8,7 @@ from langchain_community.document_loaders import PyPDFLoader
 ##################################################################################
 
 # Key da Api da Groq
-api_key = "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"
+api_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 os.environ["GROQ_API_KEY"] = api_key
 chat = ChatGroq(model = 'llama-3.1-70b-versatile')
 
